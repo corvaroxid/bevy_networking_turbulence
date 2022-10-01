@@ -32,7 +32,7 @@ fn startup(mut net: ResMut<NetworkResource>, args: Res<Args>) {
             // set the following address to your server address (i.e. local machine)
             // and remove compile_error! line
             let mut server_address: SocketAddr = "192.168.1.1:0".parse().unwrap();
-            compile_error!("You need to set server_address.");
+            // compile_error!("You need to set server_address.");
             server_address.set_port(SERVER_PORT);
         } else {
             let ip_address =

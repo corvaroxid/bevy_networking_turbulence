@@ -3,7 +3,7 @@ use bevy::tasks::Task;
 use bevy::{
     app::{App, CoreStage, Plugin},
     prelude::*,
-    tasks::{IoTaskPool, TaskPool},
+    tasks::{TaskPool},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use crossbeam_channel::{unbounded, SendError as CrossbeamSendError, Sender};
@@ -73,9 +73,8 @@ impl Plugin for NetworkingPlugin {
     fn build(&self, app: &mut App) {
         let task_pool = app
             .world
-            .get_resource::<IoTaskPool>()
+            .get_resource::<TaskPool>()
             .expect("`IoTaskPool` resource not found.")
-            .0
             .clone();
 
         app.insert_resource(NetworkResource::new(
