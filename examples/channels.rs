@@ -52,11 +52,11 @@ impl Plugin for BallsExample {
             .add_plugins(MinimalPlugins)
             .add_plugin(LogPlugin)
             .add_plugin(ScheduleRunnerPlugin::default())
-            .add_startup_system(server_setup.system())
-            .add_system(ball_movement_system.system())
+            .add_startup_system(server_setup)
+            .add_system(ball_movement_system)
             .insert_resource(NetworkBroadcast { frame: 0 })
-            .add_system_to_stage(CoreStage::PreUpdate, handle_messages_server.system())
-            .add_system_to_stage(CoreStage::PostUpdate, network_broadcast_system.system())
+            .add_system_to_stage(CoreStage::PreUpdate, handle_messages_server)
+            .add_system_to_stage(CoreStage::PostUpdate, network_broadcast_system)
         } else {
             // Client
             app.insert_resource(WindowDescriptor {
@@ -66,15 +66,15 @@ impl Plugin for BallsExample {
             })
             .add_plugins(DefaultPlugins)
             .insert_resource(ClearColor(Color::rgb(0.3, 0.3, 0.3)))
-            .add_startup_system(client_setup.system())
-            .add_system_to_stage(CoreStage::PreUpdate, handle_messages_client.system())
+            .add_startup_system(client_setup)
+            .add_system_to_stage(CoreStage::PreUpdate, handle_messages_client)
             .insert_resource(ServerIds::default())
-            .add_system(ball_control_system.system())
+            .add_system(ball_control_system)
         }
         .insert_resource(args)
         .add_plugin(NetworkingPlugin::default())
-        .add_startup_system(network_setup.system())
-        .add_system(handle_packets.system());
+        .add_startup_system(network_setup)
+        .add_system(handle_packets);
     }
 }
 

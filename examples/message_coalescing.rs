@@ -53,14 +53,14 @@ fn main() {
         .add_plugin(net_plugin)
         // Our networking
         .insert_resource(args)
-        .add_startup_system(startup.system())
-        .add_startup_system(setup_channels.system())
-        .add_system(tick.system())
-        .add_system(send_messages.system())
-        .add_system(handle_messages.system())
-        .add_system(ttl_system.system());
+        .add_startup_system(startup)
+        .add_startup_system(setup_channels)
+        .add_system(tick)
+        .add_system(send_messages)
+        .add_system(handle_messages)
+        .add_system(ttl_system);
     if parse_message_coalescing_args().manual_flush {
-        app.add_system_to_stage(CoreStage::PostUpdate, flush_channels.system());
+        app.add_system_to_stage(CoreStage::PostUpdate, flush_channels);
     }
     app.run();
 }

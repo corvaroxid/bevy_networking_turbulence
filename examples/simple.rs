@@ -20,9 +20,9 @@ fn main() {
         .add_plugin(NetworkingPlugin::default())
         // Our networking
         .insert_resource(parse_simple_args())
-        .add_startup_system(startup.system())
-        .add_system(send_packets.system())
-        .add_system(handle_packets.system())
+        .add_startup_system(startup)
+        .add_system(send_packets)
+        .add_system(handle_packets)
         .run();
 }
 

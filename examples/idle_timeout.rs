@@ -1,8 +1,9 @@
-use bevy::{app::ScheduleRunnerSettings, core::FixedTimestep, log::LogPlugin, prelude::*};
+use bevy::{app::ScheduleRunnerSettings, log::LogPlugin, prelude::*};
 
 use bevy_networking_turbulence::{NetworkEvent, NetworkResource, NetworkingPlugin, Packet};
 
 use std::{net::SocketAddr, time::Duration};
+use bevy::time::FixedTimestep;
 
 mod utils;
 use utils::{parse_idle_timeout_args, IdleTimeoutArgs as Args};
@@ -43,12 +44,12 @@ fn main() {
         .add_plugin(net_plugin)
         // Our networking
         .insert_resource(args)
-        .add_startup_system(startup.system())
-        .add_system(send_pongs.system())
+        .add_startup_system(startup)
+        .add_system(send_pongs)
         .add_stage_after(
             CoreStage::Update,
             "ping_sending_stage",
-            SystemStage::single(send_pings.system()).with_run_criteria(FixedTimestep::step(1.0)),
+            SystemStage::single(send_pings).with_run_criteria(FixedTimestep::step(1.0)),
         );
     app.run();
 }

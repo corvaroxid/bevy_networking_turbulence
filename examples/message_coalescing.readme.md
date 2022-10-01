@@ -39,7 +39,7 @@ NetworkingPlugin{message_flushing_strategy = MessageFlushingStrategy::Never, ..D
 
 // and add a system to flush:
 
-app.add_system_to_stage(CoreStage::PostUpdate, flush_channels.system());
+app.add_system_to_stage(CoreStage::PostUpdate, flush_channels);
 
 fn flush_channels(mut net: ResMut<NetworkResource>) {
     for (_handle, connection) in net.connections.iter_mut() {
