@@ -1,35 +1,34 @@
+use std::{
+    collections::HashMap,
+    error::Error,
+    fmt::Debug,
+    net::SocketAddr,
+    sync::{Arc, atomic, Mutex},
+};
 #[cfg(not(target_arch = "wasm32"))]
-use bevy::tasks::Task;
+use std::sync::RwLock;
+
 use bevy::{
     app::{App, CoreStage, Plugin},
     prelude::*,
     tasks::{IoTaskPool, TaskPool},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use crossbeam_channel::{unbounded, SendError as CrossbeamSendError, Sender};
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::RwLock;
-use std::{
-    collections::HashMap,
-    error::Error,
-    fmt::Debug,
-    net::SocketAddr,
-    sync::{atomic, Arc, Mutex},
-};
+use bevy::tasks::Task;
+use bevy::tasks::TaskPoolBuilder;
 use bevy::time::FixedTimestep;
-
-use naia_client_socket::ClientSocket;
 #[cfg(not(target_arch = "wasm32"))]
-use naia_server_socket::ServerSocket;
-
+use crossbeam_channel::{Sender, SendError as CrossbeamSendError, unbounded};
+use naia_client_socket::ClientSocket;
 pub use naia_client_socket::LinkConditionerConfig;
 #[cfg(not(target_arch = "wasm32"))]
 pub use naia_server_socket::find_my_ip_address;
-
+#[cfg(not(target_arch = "wasm32"))]
+use naia_server_socket::ServerSocket;
 use turbulence::{
     buffer::BufferPacketPool,
     message_channels::ChannelMessage,
-    packet::{Packet as PoolPacket, PacketPool, MAX_PACKET_LEN},
+    packet::{MAX_PACKET_LEN, Packet as PoolPacket, PacketPool},
     packet_multiplexer::{IncomingTrySendError, MuxPacketPool},
 };
 pub use turbulence::{
@@ -37,13 +36,15 @@ pub use turbulence::{
     reliable_channel::Settings as ReliableChannelSettings,
 };
 
-mod channels;
-mod transport;
+pub use transport::{Connection, ConnectionChannelsBuilder, Packet};
+
 use self::{
     channels::{SimpleBufferPool, TaskPoolRuntime},
     transport::MultiplexedPacket,
 };
-pub use transport::{Connection, ConnectionChannelsBuilder, Packet};
+
+mod channels;
+mod transport;
 
 pub type ConnectionHandle = u32;
 
@@ -71,12 +72,10 @@ pub struct NetworkingPlugin {
 
 impl Plugin for NetworkingPlugin {
     fn build(&self, app: &mut App) {
-        let task_pool = app
-            .world
-            .get_resource::<IoTaskPool>()
-            .expect("`IoTaskPool` resource not found.")
-            .0
-            .clone();
+        let task_pool = TaskPoolBuilder::default()
+            .num_threads(10)
+            .thread_name("IO Task Pool".to_string())
+            .build();
 
         app.insert_resource(NetworkResource::new(
             task_pool,
@@ -85,8 +84,8 @@ impl Plugin for NetworkingPlugin {
             self.idle_timeout_ms,
             self.auto_heartbeat_ms,
         ))
-        .add_event::<NetworkEvent>()
-        .add_system(receive_packets);
+            .add_event::<NetworkEvent>()
+            .add_system(receive_packets);
         if self.idle_timeout_ms.is_some() || self.auto_heartbeat_ms.is_some() {
             // heartbeats and timeouts checking/sending only runs infrequently:
             app.add_stage_after(
@@ -383,8 +382,8 @@ impl NetworkResource {
     }
 
     pub fn set_channels_builder<F>(&mut self, builder: F)
-    where
-        F: Fn(&mut ConnectionChannelsBuilder) + Send + Sync + 'static,
+        where
+            F: Fn(&mut ConnectionChannelsBuilder) + Send + Sync + 'static,
     {
         self.channels_builder_fn = Some(Box::new(builder));
     }
